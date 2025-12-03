@@ -318,7 +318,7 @@ def create_datasets(test_size=0.2, val_size=0.1, target_size=(512, 512), batch_s
     Args:
         use_otsu: If True, uses Otsu thresholding (improved). If False, uses median (baseline)
     """
-    
+    image_files, mask_files = load_dataset_info()
     # Get all file paths
     image_paths = [str(IMAGE_DIR / f) for f in image_files]
     mask_paths = [str(MASK_DIR / f) for f in mask_files]
