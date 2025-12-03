@@ -141,7 +141,7 @@ def load_and_prepare_data():
     return train_loader, val_loader, test_loader
 
 # Dataset paths
-DATA_DIR = Path(".")
+DATA_DIR = Path("../Data")
 IMAGE_DIR = DATA_DIR / "Original Images"
 MASK_DIR = DATA_DIR / "Original Masks"
 
