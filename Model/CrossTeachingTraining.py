@@ -518,7 +518,7 @@ def main():
     unet_path = "../checkpoints/final_trained_model.pth"
     vit_npz_path = None  # not needed; using timm weights
 
-    DATA_DIR = Path("..")
+    DATA_DIR = Path("../Data")
     IMAGE_DIR = DATA_DIR / "Original Images"
     MASK_DIR = DATA_DIR / "Original Masks"
     UIMAGE_DIR = DATA_DIR / "Original UImages"
