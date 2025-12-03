@@ -6,6 +6,7 @@ import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 from torch.utils.data import Dataset
 from sklearn.model_selection import train_test_split
+from torchvision import transforms
 
 # Data processing and visualization
 import numpy as np
@@ -59,8 +60,18 @@ print(f"Using device: {config.device}")
 
 def dice_loss(y_pred, y_true, smooth=1e-6):
     """Dice loss based on Jaccard (IoU) coefficient."""
-    # y_pred and y_true are (N, C, H, W). We focus on the Pore class (index 1).
-    y_true_f = y_true[:, 1, ...].contiguous().view(-1)
+    # y_pred is (N, C, H, W) with softmax probabilities
+    # y_true is (N, H, W) with class indices - need to convert to one-hot
+    
+    # Convert y_true from class indices to one-hot encoding
+    if y_true.dim() == 3:  # (N, H, W)
+        y_true_one_hot = torch.nn.functional.one_hot(y_true, num_classes=config.num_classes)
+        y_true_one_hot = y_true_one_hot.permute(0, 3, 1, 2).float()  # (N, C, H, W)
+    else:
+        y_true_one_hot = y_true
+    
+    # Focus on the Pore class (index 1)
+    y_true_f = y_true_one_hot[:, 1, ...].contiguous().view(-1)
     y_pred_f = y_pred[:, 1, ...].contiguous().view(-1)
 
     intersection = (y_pred_f * y_true_f).sum()
@@ -71,9 +82,15 @@ def dice_loss(y_pred, y_true, smooth=1e-6):
 
 def dice_coeff(y_pred, y_true, smooth=1e-6):
     """Dice coefficient (F1-score) metric."""
-    # Same logic as loss, but returns the coefficient.
-    y_true_f = y_true[:, 1, ...].contiguous().view(-1)
-    y_pred_f = (y_pred[:, 1, ...] > 0.5).float().contiguous().view(-1) # Apply threshold for metric
+    # Convert y_true from class indices to one-hot if needed
+    if y_true.dim() == 3:  # (N, H, W)
+        y_true_one_hot = torch.nn.functional.one_hot(y_true, num_classes=config.num_classes)
+        y_true_one_hot = y_true_one_hot.permute(0, 3, 1, 2).float()  # (N, C, H, W)
+    else:
+        y_true_one_hot = y_true
+    
+    y_true_f = y_true_one_hot[:, 1, ...].contiguous().view(-1)
+    y_pred_f = (y_pred[:, 1, ...] > 0.5).float().contiguous().view(-1)
 
     intersection = (y_pred_f * y_true_f).sum()
     total = y_pred_f.sum() + y_true_f.sum()
