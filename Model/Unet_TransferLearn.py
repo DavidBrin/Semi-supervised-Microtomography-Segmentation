@@ -6,6 +6,25 @@ import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 from sklearn.model_selection import train_test_split
 
+# Data processing and visualization
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from PIL import Image
+import cv2
+from pathlib import Path
+import os
+import json
+from tqdm import tqdm
+
+# Scientific computing and metrics
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import jaccard_score, f1_score, accuracy_score, confusion_matrix
+import pandas as pd
+
+# Image processing for improved thresholding
+from skimage.filters import threshold_otsu
+
 # External library for segmentation models (install with: pip install segmentation-models-pytorch)
 try:
     import segmentation_models_pytorch as smp
