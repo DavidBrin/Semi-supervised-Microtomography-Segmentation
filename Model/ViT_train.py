@@ -369,7 +369,7 @@ def main():
     print("--- PyTorch ViT Porosity Segmentation Training Script (Transfer Learning) ---")
 
     # Dataset paths
-    DATA_DIR = Path(".")
+    DATA_DIR = Path("../Data")
     IMAGE_DIR = DATA_DIR / "Original Images"
     MASK_DIR = DATA_DIR / "Original Masks"
     
