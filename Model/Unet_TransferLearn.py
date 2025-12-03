@@ -450,7 +450,7 @@ def main():
     IMAGE_DIR = DATA_DIR / "Original Images"
     MASK_DIR = DATA_DIR / "Original Masks"
     '''
-    train_loader, val_loader, test_loader, datasets = get_datasets()
+    train_loader, val_loader, test_loader, datasets = get_dataset()
     
     # Create model and set up transfer learning
     model = create_unet_tl()
