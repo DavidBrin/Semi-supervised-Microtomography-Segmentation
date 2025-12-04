@@ -251,7 +251,7 @@ class XrayPorosityDataset(Dataset):
     """
     
     def __init__(self, image_paths, mask_paths, transform=None, target_size=(512, 512), 
-                 augment=False, use_otsu=True):
+                 augment=True, use_otsu=True):
         self.image_paths = image_paths
         self.mask_paths = mask_paths
         self.transform = transform
