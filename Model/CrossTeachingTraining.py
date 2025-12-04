@@ -464,8 +464,13 @@ def load_unlabeled_data(UIMAGE_DIR):
     for subdir in os.listdir(UIMAGE_DIR):
         subdir_path = os.path.join(UIMAGE_DIR, subdir)
         if os.path.isdir(subdir_path):
-            subdir_files = [f"{subdir}/{f}" for f in os.listdir(subdir_path) if f.endswith(".tif")]
+            subdir_files = [f for f in os.listdir(subdir_path) if f.endswith(".tif")]
             image_files.extend(subdir_files)
+        else:
+            # Files directly in UIMAGE_DIR
+            if subdir.endswith(".tif"):
+                image_files.append(subdir)
+    
     image_files = sorted(image_files)
 
     print("Unlabeled dataset Overview:")
@@ -487,36 +492,45 @@ def load_unet_model(unet_path: str, device: str = "cuda"):
 
     checkpoint = torch.load(unet_path, map_location=device)
 
-    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
+    # Try loading with segmentation_models_pytorch first (if that's what was used for training)
+    try:
+        import segmentation_models_pytorch as smp
+        unet_model = smp.Unet(
+            encoder_name="resnet34",
+            encoder_weights="imagenet",
+            in_channels=1,
+            classes=2
+        )
+        logger.info("Using segmentation_models_pytorch U-Net")
+    except ImportError:
+        # Fallback to custom U-Net
         import sys
         sys.path.append("..")
         from unet_pytorch import create_unet_for_porosity
         unet_model = create_unet_for_porosity(input_size=(512, 512), device=device)
-        unet_model.load_state_dict(checkpoint["model_state_dict"])
-        logger.info("Loaded U-Net from training checkpoint (with epoch info)")
-    else:
-        try:
-            unet_model = checkpoint
-        except Exception:
-            import sys
-            sys.path.append("..")
-            from unet_pytorch import create_unet_for_porosity
-            unet_model = create_unet_for_porosity(input_size=(512, 512), device=device)
-            unet_model.load_state_dict(checkpoint)
+        logger.info("Using custom U-Net from unet_pytorch")
 
+    # Extract and load state dict
+    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
+        state_dict = checkpoint["model_state_dict"]
+    elif isinstance(checkpoint, dict):
+        state_dict = checkpoint
+    else:
+        raise ValueError("Unexpected checkpoint format")
+
+    unet_model.load_state_dict(state_dict, strict=False)
     unet_model.to(device)
     unet_model.eval()
     logger.info("U-Net model loaded successfully")
     return unet_model
-
 
 # ---------------------------------------------------------------------
 #  Main
 # ---------------------------------------------------------------------
 def main():
     # ===== User config =====
-    unet_path = "../checkpoints/final_trained_model.pth"
-    vit_npz_path = None  # not needed; using timm weights
+    unet_path = "../checkpoints/unet_porosity_model_pytorch.pth"
+    vit_npz_path = "../checkpoints/vit_porosity_model_pytorch.pth"  # not needed; using timm weights
 
     DATA_DIR = Path("../Data")
     IMAGE_DIR = DATA_DIR / "Original Images"
